@@ -18,28 +18,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package org.vaelen.chat;
 
-import org.bson.codecs.pojo.annotations.BsonCreator;
-import org.bson.codecs.pojo.annotations.BsonProperty;
+import com.mongodb.client.model.geojson.Point;
 import org.bson.types.ObjectId;
 
 import java.util.Date;
 
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class User {
 
-    @BsonProperty("id")
     private ObjectId id;
     private String name;
     private String email;
-    private Location location;
+    private Point location;
     private Date lastSeen;
 
     public User() {
-        id = new ObjectId();
-    }
-
-    @BsonCreator
-    public User(@BsonProperty("id") ObjectId id) {
-        this.id = id;
+        this.id = new ObjectId();
     }
 
     public User(String email) {
@@ -49,6 +43,11 @@ public class User {
 
     public ObjectId getId() {
         return id;
+    }
+
+    @Deprecated()
+    public void setId(ObjectId id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -67,11 +66,11 @@ public class User {
         this.email = email;
     }
 
-    public Location getLocation() {
+    public Point getLocation() {
         return location;
     }
 
-    public void setLocation(Location location) {
+    public void setLocation(Point location) {
         this.location = location;
     }
 

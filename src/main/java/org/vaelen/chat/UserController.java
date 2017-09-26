@@ -18,41 +18,44 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package org.vaelen.chat;
 
-import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.IndexOptions;
+import com.mongodb.client.model.Indexes;
 import com.mongodb.client.model.UpdateOptions;
 
 import java.util.Optional;
-import java.util.function.Supplier;
 
+import static com.mongodb.client.model.Filters.eq;
+
+@SuppressWarnings("WeakerAccess")
 public class UserController implements Streamable<User> {
 
-    private MongoDatabase db;
-    private MongoCollection<User> users;
+    private final MongoCollection<User> users;
 
-    public UserController(MongoClient client) {
-        this.db = client.getDatabase("chat");
+    public UserController(MongoDatabase db) {
         this.users = db.getCollection("users", User.class);
     }
 
     public User findByEmail(String emailAddress) {
-        Optional<User> user = stream(users.find(Filters.eq("email", emailAddress)).limit(1))
+        Optional<User> user = stream(users.find(eq("email", emailAddress)).limit(1))
                 .findFirst();
 
-        Supplier<User> newChannel = () -> {
+        return user.orElseGet(() -> {
             User u = new User(emailAddress);
             save(u);
             return u;
-        };
-
-        return user.orElse(newChannel.get());
+        });
     }
 
     public void save(User user) {
-        users.replaceOne(Filters.eq("_id", user.getId()), user,
+        users.replaceOne(eq("_id", user.getId()), user,
                 new UpdateOptions().upsert(true));
     }
 
+    public void createIndexes() {
+        users.createIndex(Indexes.ascending("email"), new IndexOptions().unique(true).background(true));
+        users.createIndex(Indexes.geo2dsphere("location"), new IndexOptions().background(true));
+        users.createIndex(Indexes.descending("lastSeen"), new IndexOptions().background(true));
+    }
 }

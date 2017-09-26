@@ -18,26 +18,31 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package org.vaelen.chat;
 
+import com.mongodb.client.model.geojson.Point;
 import org.bson.types.ObjectId;
 
+import java.util.Date;
+
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class Message {
 
     private ObjectId id;
     private String channel;
     private User user;
     private String content;
-    private Location location;
+    private Point location;
+    private Date timestamp;
 
     public Message() {
         this.id = new ObjectId();
     }
 
-    public Message(ObjectId id) {
-        this.id = id;
-    }
-
     public ObjectId getId() {
         return id;
+    }
+
+    public void setId(ObjectId id) {
+        this.id = id;
     }
 
     public String getChannel() {
@@ -64,16 +69,24 @@ public class Message {
         this.content = content;
     }
 
-    public Location getLocation() {
+    public Point getLocation() {
         return location;
     }
 
-    public void setLocation(Location location) {
+    public void setLocation(Point location) {
         this.location = location;
     }
 
     @Override
     public String toString() {
         return String.format("[%s] %s : %s", channel, user == null ? "[UNKNOWN]" : user.getName(), content);
+    }
+
+    public Date getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Date timestamp) {
+        this.timestamp = timestamp;
     }
 }

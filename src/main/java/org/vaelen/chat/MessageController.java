@@ -18,31 +18,39 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package org.vaelen.chat;
 
-import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.IndexOptions;
+import com.mongodb.client.model.Indexes;
 import com.mongodb.client.model.UpdateOptions;
 
 import java.util.stream.Stream;
 
+import static com.mongodb.client.model.Filters.eq;
+
+@SuppressWarnings("WeakerAccess")
 public class MessageController implements Streamable<Message> {
 
-    private MongoDatabase db;
-    private MongoCollection<Message> messages;
+    private final MongoCollection<Message> messages;
 
-    public MessageController(MongoClient client) {
-        this.db = client.getDatabase("chat");
+    public MessageController(MongoDatabase db) {
         this.messages = db.getCollection("messages", Message.class);
     }
 
     public Stream<Message> findByChannel(String channel) {
-        return stream(messages.find(Filters.eq("channel", channel)));
+        return stream(messages.find(eq("channel", channel)));
     }
 
     public void save(Message message) {
-        messages.replaceOne(Filters.eq("_id", message.getId()), message,
+        messages.replaceOne(eq("_id", message.getId()), message,
                 new UpdateOptions().upsert(true));
     }
 
+    public void createIndexes() {
+        messages.createIndex(Indexes.ascending("channel"), new IndexOptions().background(true));
+        messages.createIndex(Indexes.geo2dsphere("location"), new IndexOptions().background(true));
+        messages.createIndex(Indexes.ascending("user._id"), new IndexOptions().background(true));
+        messages.createIndex(Indexes.descending("timestamp"), new IndexOptions().background(true));
+        messages.createIndex(Indexes.text("content"), new IndexOptions().background(true));
+    }
 }

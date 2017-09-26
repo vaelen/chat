@@ -21,6 +21,7 @@ package org.vaelen.chat;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+@SuppressWarnings("WeakerAccess")
 public interface Streamable<T> {
     default Stream<T> stream(Iterable<T> iterable) {
         return StreamSupport.stream(iterable.spliterator(), false);

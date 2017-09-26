@@ -19,24 +19,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package org.vaelen.chat;
 
 import org.bson.codecs.pojo.annotations.BsonCreator;
-import org.bson.codecs.pojo.annotations.BsonIgnore;
 import org.bson.codecs.pojo.annotations.BsonProperty;
-import org.bson.types.ObjectId;
 
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class Channel {
 
-    private String name;
+    private final String name;
     private String description;
-    private ObjectId ownerId;
-
-    @BsonIgnore
-    private User owner;
 
     @BsonCreator
     public Channel(@BsonProperty("_id") String name) {
         this.name = name;
     }
 
+    @BsonProperty("_id")
     public String getName() {
         return name;
     }
@@ -49,12 +45,4 @@ public class Channel {
         this.description = description;
     }
 
-    public User getOwner() {
-        return owner;
-    }
-
-    public void setOwner(User owner) {
-        this.owner = owner;
-        this.ownerId = owner.getId();
-    }
 }

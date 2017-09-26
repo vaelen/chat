@@ -18,6 +18,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package org.vaelen.chat;
 
+import com.mongodb.client.model.geojson.Point;
+import com.mongodb.client.model.geojson.Position;
+
+import java.util.Date;
+
+@SuppressWarnings({"NonAsciiCharacters", "WeakerAccess"})
 public class Main {
     public static void main(String[] args) {
         DataLayer data = new DataLayer("mongodb://localhost");
@@ -28,7 +34,6 @@ public class Main {
         data.users().save(andrew);
 
         Channel channel = data.channels().findByName("testing");
-        channel.setOwner(andrew);
         channel.setDescription("A test channel");
         data.channels().save(channel);
 
@@ -37,21 +42,22 @@ public class Main {
         田中.seen();
         data.users().save(田中);
 
-        Location austin = new Location(-97.74035, 30.274665);
-        Location 東京 = new Location(-97.74035, 30.274665);
+        Point austin = new Point(new Position( -97.74035, 30.274665));
+        Point 東京 = new Point(new Position(139.745484, 35.65857));
 
         data.messages().save(createMessage(andrew, austin, "This is a test message."));
         data.messages().save(createMessage(田中, 東京, "これはテストです。"));
 
-        data.messages().findByChannel("testing").forEach(message -> System.out.println(message));
+        data.messages().findByChannel("testing").forEach(System.out::println);
     }
 
-    private static Message createMessage(User user, Location location, String content) {
+    private static Message createMessage(User user, Point location, String content) {
         Message message = new Message();
         message.setChannel("testing");
         message.setUser(user);
         message.setContent(content);
         message.setLocation(location);
+        message.setTimestamp(new Date());
         return message;
     }
 }

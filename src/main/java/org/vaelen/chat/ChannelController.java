@@ -18,46 +18,40 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package org.vaelen.chat;
 
-import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Aggregates;
-import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.UpdateOptions;
 
-import java.util.Arrays;
 import java.util.Optional;
-import java.util.function.Supplier;
 
+import static com.mongodb.client.model.Filters.eq;
+
+@SuppressWarnings("WeakerAccess")
 public class ChannelController implements Streamable<Channel> {
 
-    private MongoDatabase db;
-    private MongoCollection<Channel> channels;
+    private final MongoCollection<Channel> channels;
 
-    public ChannelController(MongoClient client) {
-        this.db = client.getDatabase("chat");
+    public ChannelController(MongoDatabase db) {
         this.channels = db.getCollection("channels", Channel.class);
     }
 
     public Channel findByName(final String name) {
-        Optional<Channel> channel = stream(channels.aggregate(Arrays.asList(
-                        Aggregates.match(Filters.eq("_id", name)),
-                        Aggregates.lookup("users", "ownerId", "_id", "owner"),
-                        Aggregates.limit(1)
-        ))).findFirst();
+        Optional<Channel> channel = stream(channels.find(eq("_id", name))
+                .limit(1)).findFirst();
 
-        Supplier<Channel> newChannel = () -> {
+        return channel.orElseGet(() -> {
             Channel c = new Channel(name);
             save(c);
             return c;
-        };
-
-        return channel.orElse(newChannel.get());
+        });
     }
 
     public void save(final Channel channel) {
-        channels.replaceOne(Filters.eq("_id", channel.getName()), channel,
+        channels.replaceOne(eq("_id", channel.getName()), channel,
                 new UpdateOptions().upsert(true));
     }
 
+    @SuppressWarnings("EmptyMethod")
+    public void createIndexes() {
+    }
 }

@@ -21,6 +21,7 @@ package org.vaelen.chat;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoClientURI;
+import com.mongodb.client.MongoDatabase;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 
@@ -30,20 +31,29 @@ import java.io.IOException;
 import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 
+@SuppressWarnings("WeakerAccess")
 public class DataLayer implements Closeable {
-    private MongoClient client;
-    private UserController userController;
-    private MessageController messageController;
-    private ChannelController channelController;
+    private final MongoClient client;
+    private final UserController userController;
+    private final MessageController messageController;
+    private final ChannelController channelController;
 
-    public DataLayer(String url) {
+    public DataLayer(final String url) {
         CodecRegistry pojoCodecRegistry = fromRegistries(MongoClient.getDefaultCodecRegistry(),
                 fromProviders(PojoCodecProvider.builder().automatic(true).build()));
         this.client = new MongoClient(new MongoClientURI(url,
                 MongoClientOptions.builder().codecRegistry(pojoCodecRegistry)));
-        this.userController = new UserController(client);
-        this.messageController = new MessageController(client);
-        this.channelController = new ChannelController(client);
+        MongoDatabase db = client.getDatabase("chat");
+        this.userController = new UserController(db);
+        this.messageController = new MessageController(db);
+        this.channelController = new ChannelController(db);
+        createIndexes();
+    }
+
+    public void createIndexes() {
+        userController.createIndexes();
+        messageController.createIndexes();
+        channelController.createIndexes();
     }
 
     public UserController users() {
