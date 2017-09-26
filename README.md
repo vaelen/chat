@@ -1,2 +1,2 @@
 # chat
-A simple chat app written in Java and backed by MongoDB.
+A simple chat server written in Java and backed by MongoDB.
